@@ -215,7 +215,8 @@ def train_loop(network: Net,
                train_loader: data.DataLoader,
                val_loader: data.DataLoader,
                epochs: int,
-               metric_smoothing_window_size: int):
+               metric_smoothing_window_size: int,
+               checkpoint_path: str):
 
     for epoch in range(1, epochs+1):
 
@@ -253,13 +254,19 @@ def train_loop(network: Net,
 
         print()
 
+        if os.path.exists(checkpoint_path):
+            os.remove(checkpoint_path)
+
+        torch.save(network, checkpoint_path)
+
 
 def main(images_root="/data/Datasets/cocodoom",
          train_json="/data/Datasets/cocodoom/run-train.json",
          val_json="/data/Datasets/cocodoom/run-val.json",
          epochs=30,
          batch_size=32,
-         adam_lr=4e-3):
+         adam_lr=4e-3,
+         checkpoint_path="/data/Checkpoints/cocodoom-semseg"):
 
     if images_root is None:
         images_root, train_json, val_json, epochs, batch_size, adam_lr = parse_args()
@@ -271,7 +278,12 @@ def main(images_root="/data/Datasets/cocodoom",
 
     net = Net(adam_lr)
 
-    train_loop(net, train_loader, val_loader, epochs=epochs, metric_smoothing_window_size=100)
+    train_loop(net,
+               train_loader,
+               val_loader,
+               epochs,
+               metric_smoothing_window_size=100,
+               checkpoint_path=checkpoint_path)
 
 
 if __name__ == '__main__':
